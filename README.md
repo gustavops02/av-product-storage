@@ -1,7 +1,7 @@
 ![Python](https://img.shields.io/badge/Python-fff?style=for-the-badge&logo=python&logoColor=yellow)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 
-> Colaboradores: Gustavo Paulo da Silva e Victor Abadia do Nascimento
+Colaboradores: **Gustavo Paulo da Silva** e **Victor Abadia do Nascimento**
 
 
 ## Estoque de Produtos 
@@ -20,8 +20,9 @@ O Valor ajustado será uma taxa de 10% do valor do produto
 
 Na segunda etapa, foi elaborado o protótipo (a tela com o tkinter) para a visualização detalhada do projeto.
 
+<img width="500" src="https://github.com/gustavops02/av-product-storage/assets/87784023/2e147195-1355-45a7-8e81-8ff2ecf19c37"/>
 
-![tkinter-tela](https://github.com/gustavops02/av-product-storage/assets/87784023/420f0284-ee13-4ed8-9266-4f033a082564)
+<img width="500" src="https://github.com/gustavops02/av-product-storage/assets/87784023/6179396f-fd1b-4ac3-b44c-2195dc23958a" />
 
 Onde o preço ajustado é definido automaticamente em uma coluna separada, preservando a normalização e a integridade dos dados.
 
@@ -30,7 +31,9 @@ Onde o preço ajustado é definido automaticamente em uma coluna separada, prese
 Este código é uma função que cria uma conexão com um banco de dados PostgreSQL usando a biblioteca psycopg2.
 Onde:
 
+
 #### Arquivo crud.py (classe AppBD)
+
 
 ```python
 def create_connection():
@@ -70,6 +73,21 @@ def inserirDados(self, codigo, nome, preco): # Pega os campos como parâmetro pa
         if(self.connection): 
             cursor.close()
             self.connection.close()
+
+  def getDados(self):
+      try:
+          self.abrirConexao()
+          cursor = self.connection.cursor()
+          query = """SELECT * FROM public."PRODUTO"; """
+          cursor.execute(query)
+          records = cursor.fetchall() # retorna todos os registros em formato de List
+          return records
+      except (Exception, psycopg2.Error) as error:
+          print('Falha ao consultar os dados')
+      finally:
+          if(self.connection):
+              cursor.close()
+              self.connection.close()
 
 def atualizarDados(self, codigo, nome, preco):
     try:
@@ -131,6 +149,8 @@ class PrincipalBD:
         self.btnAtualizar=tk.Button(win, text='Atualizar', command=self.fAtualizarProduto)
         self.btnExcluir=tk.Button(win, text='Excluir', command=self.fExcluirProduto)
         self.btnLimpar=tk.Button(win, text='Limpar', command=self.fLimparTela)
+        self.btnConsultar=tk.Button(win, text='Consultar')
+        self.btnConsultar.bind("<Button>", lambda e: self.consultaProdutos(win)) # cria uma nova tela
 
         # localização dos campos
         self.lbCodigo.place(x=100, y=50)
@@ -143,6 +163,30 @@ class PrincipalBD:
         self.btnAtualizar.place(x=200, y=200)
         self.btnExcluir.place(x=300, y=200)
         self.btnLimpar.place(x=400, y=200)
+        self.btnConsultar.place(x=250, y= 250)
+
+    def consultaProdutos(self, master): # Neste método, não nos preocupamos no princípio da responsabilidade única do SOLID.
+        novaJanela = tk.Toplevel(master) # configuração da nova tela
+        novaJanela.title('Consulta de produtos')
+        novaJanela.geometry('800x600')
+        tree = ttk.Treeview(novaJanela, selectmode='browse', columns=("col1","col2", "col3", "col4"), show='headings') # Configuração da TreeView
+        tree.column("col1", width=100, minwidth=50, stretch='no')
+        tree.heading("#1", text="Id")
+        tree.column("col2", width=200, minwidth=50, stretch='no')
+        tree.heading("#2", text="Nome")
+        tree.column("col3", width=200, minwidth=50, stretch='no')
+        tree.heading("#3", text="Preço")       
+        tree.column("col4", width=300, minwidth=50, stretch='no')
+        tree.heading("#4", text="Preço Ajustado") 
+        tree.pack(expand=True, fill='both') 
+        try: 
+            record = self.objBD.getDados()
+            for row in record:
+                tree.insert('', 'end', values=row) # Implementação de cada registro na tabela, utilizando um laço for para obter cada registro
+                
+
+        except(Exception) as error:
+            print(error)
 
     def fCadastrarProduto(self):
         try:

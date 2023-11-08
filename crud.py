@@ -30,6 +30,21 @@ class AppBD:
                 cursor.close()
                 self.connection.close()
 
+    def getDados(self):
+        try:
+            self.abrirConexao()
+            cursor = self.connection.cursor()
+            query = """SELECT * FROM public."PRODUTO"; """
+            cursor.execute(query)
+            records = cursor.fetchall()
+            return records
+        except (Exception, psycopg2.Error) as error:
+            print('Falha ao consultar os dados')
+        finally:
+            if(self.connection):
+                cursor.close()
+                self.connection.close()
+
     def atualizarDados(self, codigo, nome, preco):
         try:
             self.abrirConexao()
